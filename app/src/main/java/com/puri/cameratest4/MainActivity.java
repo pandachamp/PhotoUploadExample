@@ -22,12 +22,14 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int REQUEST_CAMERA = 2;
+    public static final int REQUEST_GALLERY = 1;
 
     final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final String CAMERA_DIR = "/DCIM/";
@@ -45,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
         CheckPermission();
 
         Button buttonIntent = (Button)findViewById(R.id.take);
+        Button buttongal = (Button)findViewById(R.id.gallery);
+
+
         assert buttonIntent != null;
         buttonIntent.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -58,6 +63,17 @@ public class MainActivity extends AppCompatActivity {
                 uri = Uri.fromFile(f);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
                 startActivityForResult(Intent.createChooser(intent, "Take a picture with"), REQUEST_CAMERA);
+            }
+        });
+
+        assert buttongal != null;
+        buttongal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);//
+                startActivityForResult(Intent.createChooser(intent, "Select File"),REQUEST_GALLERY);
             }
         });
     }
@@ -78,12 +94,22 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        if(requestCode == REQUEST_GALLERY && resultCode == RESULT_OK){
+            Bitmap bm=null;
+            if (data != null) {
+                try {
+                    bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            imageView.setImageBitmap(bm);
+        }
     }
 
     private void CheckPermission() {
 
         int hasWriteContactsPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
 
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
